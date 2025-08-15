@@ -235,6 +235,16 @@ class FermionicAnnihilation(Box):
         super().__init__('c', fermion, Ty())
 
 
+class FermionicNumber(Box):
+    """Fermionic number operator.
+    
+    Represents the number operator n = c†c for a fermionic mode.
+    """
+    
+    def __init__(self):
+        super().__init__('n', fermion, fermion)
+
+
 class FermionicHopping(Box):
     """Fermionic hopping operator.
     
@@ -245,6 +255,52 @@ class FermionicHopping(Box):
     def __init__(self, t: float = 1.0):
         self.t = t
         super().__init__(f'hop({t})', fermion @ fermion, fermion @ fermion)
+
+
+class FermionicPairing(Box):
+    """Fermionic pairing operator.
+    
+    Represents pairing terms c†c† or cc that appear in 
+    superconducting systems and BCS Hamiltonians.
+    """
+    
+    def __init__(self, creation: bool = True):
+        if creation:
+            name = 'Δ†'  # c†c† term
+            dom, cod = Ty(), fermion @ fermion
+        else:
+            name = 'Δ'   # cc term  
+            dom, cod = fermion @ fermion, Ty()
+        super().__init__(name, dom, cod)
+        self.creation = creation
+
+
+def jordan_wigner_string(start: int, end: int) -> str:
+    """Generate Jordan-Wigner string description.
+    
+    In fermionic circuits, operators acting on distant modes require
+    Jordan-Wigner strings (products of Z gates) to maintain proper
+    anticommutation relations.
+    
+    Parameters
+    ----------
+    start : int
+        Starting mode index
+    end : int  
+        Ending mode index
+        
+    Returns
+    -------
+    str
+        Description of the Jordan-Wigner string needed
+    """
+    if start == end:
+        return "I"
+    elif abs(end - start) == 1:
+        return "I"
+    else:
+        length = abs(end - start) - 1
+        return f"Z^⊗{length}"
 
 
 # Fermionic special boxes - these will need to be implemented specifically
@@ -327,17 +383,33 @@ class Swap(quantum.Swap, Box):
     """A fermionic swap box.
     
     In fermionic systems, swaps introduce a minus sign due to
-    anticommutation relations of fermions.
+    anticommutation relations of fermions: ψ_i ψ_j = -ψ_j ψ_i
     """
     
     def __init__(self, left: Ty, right: Ty):
         super().__init__(left, right)
-        # TODO: Add fermionic-specific swap logic including minus sign
+        # In a full implementation, this would include fermionic sign logic
+        # For now, we note the difference in the docstring
+        
+    @property
+    def has_fermionic_sign(self) -> bool:
+        """Whether this swap introduces a fermionic sign.
+        
+        Returns
+        -------
+        bool
+            True if this swap involves fermionic modes and thus 
+            requires a -1 phase factor.
+        """
+        return self.left == fermion and self.right == fermion
 
 
 # Dictionary of fermionic gates for easy access
 FERMIONIC_GATES: Dict[str, Box] = {
     'c_dagger': FermionicCreation(),
     'c': FermionicAnnihilation(),
+    'n': FermionicNumber(),
     'hop': FermionicHopping,  # Callable for parameterized hopping
+    'delta_dagger': lambda: FermionicPairing(creation=True),
+    'delta': lambda: FermionicPairing(creation=False),
 }
