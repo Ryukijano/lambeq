@@ -47,7 +47,7 @@ from lambeq.backend.drawing.mat_backend import (
     BOX_LINEWIDTH as MAT_BOX_LINEWIDTH, MatBackend,
     WIRE_LINEWIDTH as MAT_WIRE_LINEWIDTH
 )
-from lambeq.backend.drawing.text_printer import PregroupTextPrinter
+from lambeq.backend.drawing.text_printer import DiagramTextPrinter, PregroupTextPrinter
 from lambeq.backend.drawing.tikz_backend import (
     BOX_LINEWIDTH as TIKZ_BOX_LINEWIDTH, TikzBackend,
     WIRE_LINEWIDTH as TIKZ_WIRE_LINEWIDTH
@@ -273,17 +273,11 @@ def render_as_str(diagram: Diagram,
 
     """
 
-    if diagram.is_pregroup:
-        text_printer = PregroupTextPrinter(word_spacing,
-                                           use_at_separator,
-                                           compress_layers,
-                                           use_ascii)
-    else:
-        # TODO: Add text/CLI drawing for non-pregroup diagrams.
-        raise NotImplementedError('Text drawing is only supported for'
-                                  ' pregroups. Provided diagram is not a'
-                                  ' pregroup diagram.')
-
+    # Use the general DiagramTextPrinter which handles both pregroup and non-pregroup diagrams
+    text_printer = DiagramTextPrinter(word_spacing,
+                                      use_at_separator,
+                                      compress_layers,
+                                      use_ascii)
     return text_printer.diagram2str(diagram)
 
 

@@ -135,15 +135,23 @@ def test_diagram_with_just_identities_2():
 
 
 def test_diagram_no_pregroup(diagram1):
-    with pytest.raises(NotImplementedError):
-        diagram1.normal_form().render_as_str()
+    # Now that we support non-pregroup diagrams, this should work
+    result = diagram1.normal_form().render_as_str()
+    assert isinstance(result, str)
+    # Check that some expected content is present
+    assert 'John' in result or 'gave' in result or 'Mary' in result
 
 
 def test_tensor():
-    with pytest.raises(NotImplementedError):
-        (Box("A", Dim(), Dim(3)) >> Box("A", Dim(3), Dim(4, 3))).render_as_str()
+    # Now that we support tensor diagrams, this should work
+    result = (Box("A", Dim(), Dim(3)) >> Box("A", Dim(3), Dim(4, 3))).render_as_str()
+    assert isinstance(result, str)
+    assert 'A' in result
 
 
 def test_quantum():
-    with pytest.raises(NotImplementedError):
-        (H @ qubit >> CX).render_as_str()
+    # Now that we support quantum diagrams, this should work
+    result = (H @ qubit >> CX).render_as_str()
+    assert isinstance(result, str)
+    assert 'H' in result
+    assert 'CX' in result
